@@ -8,7 +8,18 @@ Bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 Step 2: Activate NVM in Your Current Terminal Session
 Bash
+
 . ~/.nvm/nvm.sh
+
+=> nvm source string already in /home/ec2-user/.bashrc
+=> bash_completion source string already in /home/ec2-user/.bashrc
+=> Close and reopen your terminal to start using nvm or run the following to use it now:
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[ec2-user@ip-172-31-41-91 traineffective-backend]$ 
+
 Step 3: Install Node.js (Version 18 or higher is required for Amplify)
 Bash
 nvm install 20
