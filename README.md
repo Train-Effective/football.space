@@ -27,3 +27,19 @@ npm init -y
 # 2. Scaffold your Amplify infrastructure files
 npm create amplify@latest -- --yes
 Run the NVM installation commands above to unblock npm. Let me know if npm -v spits out a version number successfully! You're handling this cloud interface like a pro.
+
+
+====
+
+Role for Amplify
+For premium quality with zero human resource overhead, we do not pass hard-coded Secret Access Keys onto our servers. Doing that is a major security vulnerability. Instead, we use a native AWS feature called an IAM Instance Profile (EC2 Role).
+Open your local web browser and log into your AWS Management Console.
+Search for IAM in the top search bar and click on Roles -> Create role.
+Select AWS service as the trusted entity type, and choose EC2 from the service dropdown. Click Next.
+In the permissions search bar, look for AdministratorAccess or PowerUserAccess, check the box next to it, and click Next.
+Name the role EC2-Amplify-Admin-Role and click Create role.
+Go to your EC2 Dashboard, check the box next to your instance (ip-172-31-2-17), click Actions -> Security -> Modify IAM role.
+Select your newly created EC2-Amplify-Admin-Role from the dropdown and hit Update IAM role.
+
+
+======
