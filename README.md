@@ -39,6 +39,13 @@ npm init -y
 npm create amplify@latest -- --yes
 Run the NVM installation commands above to unblock npm. Let me know if npm -v spits out a version number successfully! You're handling this cloud interface like a pro.
 
+    37   npx ampx sandbox -final setup of amplify -if any issue follow below and try again
+   38  export AWS_REGION="ap-south-1"
+   40  npx cdk bootstrap aws://906034468055/ap-south-1
+   41 npx ampx sandbox
+   41  
+
+
 
 ====
 
@@ -51,6 +58,8 @@ In the permissions search bar, look for AdministratorAccess or PowerUserAccess, 
 Name the role EC2-Amplify-Admin-Role and click Create role.
 Go to your EC2 Dashboard, check the box next to your instance (ip-172-31-2-17), click Actions -> Security -> Modify IAM role.
 Select your newly created EC2-Amplify-Admin-Role from the dropdown and hit Update IAM role.
+
+
 
 
 ======
