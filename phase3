@@ -7,3 +7,11 @@ Smartphone App] ──(Direct Upload)──► [Amazon S3 Bucket]
   (6-Sec HLS Slices)
          ▼
  [Processed S3 Folder]
+Storage (Amazon S3): The mobile application requests a secure, temporary link and uploads the raw .mp4 file directly to a cloud bucket.
+The Catalyst (AWS Lambda): The exact millisecond the upload finishes, 
+an S3 event automatically wakes up a lightweight background function (Lambda). 
+This function reads the file's name and location.
+The Heavy Lifter (AWS Elemental MediaConvert): The Lambda function doesn't process the video itself. 
+It instantly hands a "processing job ticket" to MediaConvert. MediaConvert spins up dedicated virtual processing units,
+chops the video into 6-second adaptive bitrate streaming slices (.m3u8 playlist and .ts files),
+and saves them into a separate public folder for stutter-free playback in India
