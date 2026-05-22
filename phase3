@@ -1,0 +1,9 @@
+Smartphone App] ──(Direct Upload)──► [Amazon S3 Bucket]
+                                             │
+                                      (Auto-Trigger)
+                                             ▼
+[Amazon MediaConvert] ◄──(Send Job)─── [AWS Lambda Worker]
+         │
+  (6-Sec HLS Slices)
+         ▼
+ [Processed S3 Folder]
