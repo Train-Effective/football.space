@@ -1,3 +1,77 @@
+Step 1: Configuring Your Project Root
+When you ran npm create amplify@latest, AWS generated a specific folder structure on your Linux machine. Before writing your data schemas, verify that your project folder matches this architecture layout:
+Plaintext
+traineffective-backend/
+├── amplify/
+│   ├── auth/
+│   │   └── resource.ts       <-- User Identity & Cognito Rules
+│   ├── data/
+│   │   └── resource.ts       <-- AppSync GraphQL Schema & DynamoDB Rules
+│   └── backend.ts            <-- Core Deployment Assembly File
+├── package.json
+└── tsconfig.json
+
+
+Open amplify/data/resource.ts, delete whatever boilerplate code AWS put in there, and paste this production schema.
+This file uses TypeScript to define your serverless GraphQL API and maps your data relational paths directly into Amazon DynamoDB.
+Notice how we use Authorization Rules (
+.authorization()) to enforce airtight data privacy for players and coaches.
+import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+
+const schema = a.schema({
+  // 1. USER PROFILES
+  Profile: a.model({
+    id: a.id().required(),
+    fullName: a.string().required(),
+    role: a.enum(['PLAYER', 'COACH', 'ADMIN']),
+    playingPosition: a.string(), // e.g., 'Midfielder', 'Winger'
+    submissions: a.hasMany('VideoSubmission', 'playerId'),
+    reviews: a.hasMany('CoachReview', 'coachId'),
+  }).authorization((allow) => [
+    // Anyone authenticated can read profiles (players need to see coach details)
+    allow.authenticated().to(['read']),
+    // Only the owner of the profile can update their own data
+    allow.owner()
+  ]),
+
+  // 2. VIDEO SUBMISSIONS LAYER
+  VideoSubmission: a.model({
+    playerId: a.id().required(),
+    player: a.belongsTo('Profile', 'playerId'),
+    drillCategory: a.string().required(), // e.g., 'First-Touch-Control'
+    status: a.enum(['UPLOADING', 'PROCESSING', 'PENDING_REVIEW', 'REVIEWED']),
+    rawMp4Url: a.string(),
+    hlsPlaylistUrl: a.string(), // Target index file (.m3u8) matching your CloudFront distribution
+    reviews: a.hasMany('CoachReview', 'submissionId'),
+  }).authorization((allow) => [
+    // Players can create and read their own videos
+    allow.owner(),
+    // Coaches can read submissions to review them
+    allow.groups(['COACHES']).to(['read', 'update'])
+  ]),
+
+  // 3. COACH PERFORMANCE REVIEWS (NoSQL Multi-Array JSON Core)
+  CoachReview: a.model({
+    submissionId: a.id().required(),
+    submission: a.belongsTo('VideoSubmission', 'submissionId'),
+    coachId: a.id().required(),
+    coach: a.belongsTo('Profile', 'coachId'),
+    overallRating: a.integer().required(), // 1 to 5 Star matrix
+    audioNotesUrl: a.string(), // Path to voice overlay in S3
+    // EXTREMELY CRITICAL: This is the native unstructured field holding your 
+    // timeline events and coordinate drawings [{timestamp: "00:04.12", paths: [...]}]
+    drawingOverlayJson: a.json(), 
+  }).authorization((allow) => [
+    // Only authorized elite coaches can create reviews
+    allow.groups(['COACHES']),
+    // Authenticated players can read the reviews attached to their submissions
+    allow.authenticated().to(['read'])
+  ])
+});
+
+export type Schema = ClientSchema<typeof schema>;
+export const data = defineData({ schema });
+
 Smartphone App] ──(Direct Upload)──► [Amazon S3 Bucket]
                                              │
                                       (Auto-Trigger)
