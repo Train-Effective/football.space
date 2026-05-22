@@ -72,6 +72,12 @@ const schema = a.schema({
 export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({ schema });
 
+
+  npx ampx sandbox -final setup of amplify -if any issue follow below and try again
+  export AWS_REGION="ap-south-1"
+  npx cdk bootstrap aws://906034468055/ap-south-1
+   npx ampx sandbox
+
 Smartphone App] ──(Direct Upload)──► [Amazon S3 Bucket]
                                              │
                                       (Auto-Trigger)
