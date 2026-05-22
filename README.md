@@ -39,10 +39,6 @@ npm init -y
 npm create amplify@latest -- --yes
 Run the NVM installation commands above to unblock npm. Let me know if npm -v spits out a version number successfully! You're handling this cloud interface like a pro.
 
-    37   npx ampx sandbox -final setup of amplify -if any issue follow below and try again
-   38  export AWS_REGION="ap-south-1"
-   40  npx cdk bootstrap aws://906034468055/ap-south-1
-   41 npx ampx sandbox
    41  
 
 
