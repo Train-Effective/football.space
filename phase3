@@ -95,3 +95,55 @@ The Heavy Lifter (AWS Elemental MediaConvert): The Lambda function doesn't proce
 It instantly hands a "processing job ticket" to MediaConvert. MediaConvert spins up dedicated virtual processing units,
 chops the video into 6-second adaptive bitrate streaming slices (.m3u8 playlist and .ts files),
 and saves them into a separate public folder for stutter-free playback in India
+
+Phase 3, Step 2: Creating the Automation Lambda Controller
+Now that amplify/storage/resource.ts is ready, it is pointing to a worker script called ./on-upload-handler.ts. We need to physically create that file inside the exact same folder so the system knows what code to execute the millisecond an .mp4 file hits the storage bucket.
+Run this command in your active terminal to open the new script file in Vim:
+
+import type { S3Handler } from 'aws-lambda';
+import { MediaConvertClient, CreateJobCommand } from "@aws-sdk/client-mediaconvert";
+
+// Direct integration into our active Mumbai cluster for rapid execution speeds
+const emcClient = new MediaConvertClient({ region: "ap-south-1" });
+
+export const handler: S3Handler = async (event) => {
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = event.Records[0].s3.object.key;
+
+  // Guardrail Check: Completely skip processing if file lands outside raw-uploads/
+  if (!key.startsWith('raw-uploads/')) {
+    console.log(`File location ${key} does not require transcoding execution.`);
+    return;
+  }
+
+  const inputUri = `s3://${bucket}/${key}`;
+  // Automatically routes output streaming slices into a clean sub-folder
+  const outputUri = `s3://${bucket}/processed-streams/${key.split('/').pop()?.split('.')[0]}/`;
+
+  try {
+    const jobCommand = new CreateJobCommand({
+      Role: process.env.MEDIACONVERT_ROLE_ARN, // Handled automatically via cross-resource cloud permissions
+      Settings: {
+        Inputs: [{ FileInput: inputUri }],
+        OutputGroups: [{
+          Name: "Apple HLS",
+          OutputGroupSettings: {
+            Type: "HLS_GROUP_SETTINGS",
+            HlsGroupSettings: {
+              Destination: outputUri,
+              SegmentLength: 6, // Enforces strict 6-second slices optimized for Indian mobile networks
+              MinSegmentLength: 2
+            }
+          },
+          Outputs: [{ ContainerSettings: { Container: "M3U8" } }]
+        }]
+      }
+    });
+
+    await emcClient.send(jobCommand);
+    console.log(`MediaConvert transcode job successfully deployed for asset: ${key}`);
+  } catch (error) {
+    console.error("Critical Failure initializing MediaConvert execution pipeline:", error);
+    throw error;
+  }
+};
